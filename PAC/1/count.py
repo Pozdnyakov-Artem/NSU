@@ -1,0 +1,5 @@
+st="I believe that it is important to experience a lot of emotions in life, not necessarily positive ones, because when a person feels, they are living. I get a lot of positive emotions and positive impressions from traveling. I like to see something new and visit very beautiful places in nature. There, I can learn something new and admire the beauty of nature. Traveling to other cities leaves many memories. There, you can see many new things, improve your real-life communication skills, and learn something new from conversations with locals, for example local social norms. Additionally, since I love history, I enjoy exploring historical sites and realise the achievements of all generations of humanity. In these places you can evolve as a person.I also experience emotions when I hang out with my friends or find out something new about modern technology. I believe that it is very important to constantly improve our skills and communicate with people in our lives."
+m=[i for i in st.split()]
+
+print(len(m))
+print(m)
