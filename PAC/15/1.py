@@ -1,5 +1,6 @@
+import numpy as np
 import torch
-import torchvision
+import torch.nn.functional as F
 import torchvision.models
 import cv2
 from matplotlib import pyplot as plt
@@ -22,40 +23,58 @@ model.avgpool.register_forward_hook(get_embedding)
 W = model.fc.weight.data
 model.eval()
 
-img = cv2.imread(r'2.jpg')
-
-width, height = img.shape[1], img.shape[0]
-
-img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-img = torch.from_numpy(img).float() / 255.0  # [0, 255] → [0, 1]
-img = img.permute(2, 0, 1)               # HWC → CHW
-img = img.unsqueeze(0)                   # Добавляем батч
-
-# Нормализация под ImageNet
 normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                  std=[0.229, 0.224, 0.225])
-img = normalize(img)
+frame = cv2.imread(r'2.jpg')
+# cap = cv2.VideoCapture(0)
 
-model(img)
+while True:
+
+    # ret, frame = cap.read()
+    img = frame
+    width, height = img.shape[1], img.shape[0]
+
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = torch.from_numpy(img).float() / 255.0
+    img = img.permute(2, 0, 1)
+    img = img.unsqueeze(0)
+
+    img = normalize(img)
+
+    output = model(img)
+    _, predicted_idx = torch.max(output, 1)
+    print(predicted_idx)
 
 
-print(features_map.shape)
-print(avgpool_emb.shape)
-print(W.shape)
+    print(features_map.shape)   #1 2048 15 20
+    print(avgpool_emb.shape)    #1 2048 1 1
+    # print(W.shape, W[250].shape)
+    nw = W[predicted_idx].view(1, 2048, 1, 1) #250
+    # print(nw.shape)
 
-nw = W[250].view(1, 2048, 1, 1)
-act = (nw*features_map).sum(dim=1)
-cam = torch.relu(act)  # оставляем только положительные активации
-cam = cam.squeeze(0)
+    act = (nw*features_map).sum(dim=1)
+    # print(min(act))
+    # act = F.conv2d(features_map, W.unsqueeze(-1).unsqueeze(-1))
+    # cam = torch.relu(act)
+    cam = act.squeeze(0)
+    cam = cam.squeeze(0)
+    # print(cam.shape)
+    cam = torch.nn.functional.interpolate(
+        cam.unsqueeze(0).unsqueeze(0),
+        size=(height, width),
+        mode='bilinear',
+        align_corners=False
+    ).squeeze()
 
-cam = torch.nn.functional.interpolate(
-    cam.unsqueeze(0).unsqueeze(0),  # [1, 1, 7, 7]
-    size=(height, width),
-    mode='bilinear',
-    align_corners=False
-).squeeze()
+    cam = cam - cam.min()
+    cam = cam / (cam.max())
+    cam = cam * 255
+    cam = cam.detach().numpy().astype(np.uint8)
+    heatmap = cv2.applyColorMap(cam, cv2.COLORMAP_JET)
+    overlay = cv2.addWeighted(frame, 0.5, heatmap, 0.5, 0)
+    cv2.imshow('cam', overlay)
+    cv2.waitKey(1)
+    # plt.figure(figsize=(12, 4))
+    # plt.imshow(cam.detach().numpy())
 
-plt.figure(figsize=(12, 4))
-plt.imshow(cam.detach().cpu().numpy())
-
-plt.show()
+    # plt.show()
