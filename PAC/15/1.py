@@ -43,18 +43,9 @@ while True:
 
     output = model(img)
     _, predicted_idx = torch.max(output, 1)
-    print(predicted_idx)
-
-
-    print(features_map.shape)   #1 2048 15 20
-    print(avgpool_emb.shape)    #1 2048 1 1
-    # print(W.shape, W[250].shape)
     nw = W[predicted_idx].view(1, 2048, 1, 1) #250
-    # print(nw.shape)
 
     act = (nw*features_map).sum(dim=1)
-    # print(min(act))
-    # act = F.conv2d(features_map, W.unsqueeze(-1).unsqueeze(-1))
     # cam = torch.relu(act)
     cam = act.squeeze(0)
     cam = cam.squeeze(0)
