@@ -13,13 +13,12 @@ for sentence in sentences:
     for word in sentence.lower().split():
         for letter in word:
             dic.add(letter)
-# print(dic)
+
 sl = list(dic)
 sl.append(' ')
-# print(sl)
 
 data = []
-print(sentences,sep="\n")
+
 for sentence in sentences:
     emb_sentence = []
     for word in sentence.lower().split():
@@ -29,14 +28,11 @@ for sentence in sentences:
             emb_sentence.append(emb_word)
         emb_sentence.append(([0]*(len(sl)-1))+[1])
     data.append(emb_sentence[:31])
-    # print(len(emb_sentence[:-1]))
-print(len(data),len(data[0]), len(data[0][0]))
 
 train_data = []
 label = []
 
 for sentence in data:
-    # print(len(sentence[:-1]))
     train_data.append(sentence[:-1])
     label.append(sentence[1:])
 
@@ -87,11 +83,8 @@ class RNN(nn.Module):
 
             logits = logits / temperature
             probs = torch.softmax(logits, dim=0).numpy()
-            # print(probs)
             next_idx = np.random.choice(len(sl), p=probs)
             next_char = sl[next_idx]
-            # next_idx = np.argmax(probs)
-            # next_char = sl[next_idx]
             gen += next_char
 
             new_vec = [0] * len(sl)
