@@ -35,18 +35,17 @@ def get_avgpool_output(module,inputs,output):
 hook = model.layer4.register_forward_hook(get_layer4_output)
 hook_avg = model.avgpool.register_forward_hook(get_avgpool_output)
 
-img2 = open_img(r"imgs/i.jpg")
+img2 = open_img(r"imgs/v.jpg")
 
 img = open_img(r"imgs/abc.png")
 orig_img = cv2.imread(r"imgs/abc.png")
 orig_img = cv2.cvtColor(orig_img, cv2.COLOR_BGR2RGB)
 H, W = img.shape[2:]
-
 with torch.no_grad():
     _ = model(img2)
     B, C, h, w = avgpool_output.shape
     avgout = avgpool_output.reshape(B, C, -1).squeeze(0)
-    avgout = F.normalize(avgout, p=2, dim=1)
+    # avgout = F.normalize(avgout, p=2, dim=1)
     hook_avg.remove()
 
     layer4_output = None
@@ -57,10 +56,11 @@ with torch.no_grad():
     B, C, h_feat, w_feat = layer4_output.shape
 
     output1 = layer4_output.reshape(B, C, -1).permute(0, 2, 1).squeeze(0)
-    output1 = F.normalize(output1, p=2, dim=1)
+    # output1 = F.normalize(output1, p=2, dim=1)
 
     similarities = torch.matmul(output1, avgout).reshape(h_feat,w_feat).numpy()
     heatmap_norm = (similarities - similarities.min()) / (similarities.max() - similarities.min() + 1e-8)
+
     similarities = cv2.resize(heatmap_norm*255, (W,H), interpolation=cv2.INTER_CUBIC)
 
     heatmap = cv2.applyColorMap(similarities.astype(np.uint8), cv2.COLORMAP_JET)
