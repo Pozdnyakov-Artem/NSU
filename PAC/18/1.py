@@ -140,7 +140,8 @@ for epoch in range(5):
 
 siamese.eval()
 
-img_t1 = transform(cv2.imread(r"s1/1.pgm",cv2.IMREAD_GRAYSCALE))
-img_t2 = transform(cv2.imread(r"s1/2.pgm",cv2.IMREAD_GRAYSCALE))
-
-print(siamese(img_t1,img_t2))
+img_t1 = transform(cv2.imread(r"s1/1.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(1)
+img_t2 = transform(cv2.imread(r"s1/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(1)
+# print(img_t1.shape)
+with torch.no_grad():
+    print(siamese(img_t1,img_t2))
