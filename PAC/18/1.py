@@ -10,12 +10,13 @@ transform = transforms.Compose([
 ])
 
 data = []
-print(transform(cv2.imread("s1/1.pgm", cv2.IMREAD_GRAYSCALE)).shape)
+# print(transform(cv2.imread("s1/1.pgm", cv2.IMREAD_GRAYSCALE)).shape)
 for i in range(1,41):
     for idx_first_img in range(1,10):
         for idx_second_img in range(i+1,11):
             data.append((transform(cv2.imread(f"s{i}/{idx_first_img}.pgm",cv2.IMREAD_GRAYSCALE)),transform(cv2.imread(f"s{i}/{idx_second_img}.pgm",cv2.IMREAD_GRAYSCALE)),1))
-            data.append((transform(cv2.imread(f"s{i}/{idx_first_img}.pgm",cv2.IMREAD_GRAYSCALE)), transform(cv2.imread(f"s{idx_second_img}/{i}.pgm",cv2.IMREAD_GRAYSCALE)), 0))
+            data.append((transform(cv2.imread(f"s{i}/{idx_first_img}.pgm",cv2.IMREAD_GRAYSCALE)), transform(cv2.imread(f"s{idx_second_img}/{idx_first_img}.pgm",cv2.IMREAD_GRAYSCALE)), 0))
+
 
 # print(len(data))
 
@@ -26,33 +27,16 @@ class FaceDataset(Dataset):
         self.crops = img_data
         self.transform = transform
 
-    def get_crops(self, data):
-        return data
-
     def __getitem__(self, idx):
         img1, img2, label = self.crops[idx]
 
-        if self.transform:
-            if len(img1.shape) == 2:
-                img1 = img1[:, :, None]
-                img2 = img2[:, :, None]
-            input_img1 = torch.from_numpy(img1).float() / 255.0
-            input_img2 = torch.from_numpy(img2).float() / 255.0
-
-            if input_img1.dim() == 2:
-                input_img1 = input_img1.unsqueeze(0)
-                input_img2 = input_img2.unsqueeze(0)
-        else:
-            input_img1 = img1
-            input_img2 = img2
-
-        return input_img1, input_img2, torch.tensor(label, dtype=torch.float32)
+        return img1, img2, torch.tensor(label, dtype=torch.float32)
 
     def __len__(self):
         return len(self.crops)
 
 dataset = FaceDataset(data)
-dataloader = torch.utils.data.DataLoader(dataset, batch_size=4, shuffle=True)
+dataloader = torch.utils.data.DataLoader(dataset, batch_size=16, shuffle=True)
 
 class model(nn.Module):
     def __init__(self):
@@ -126,9 +110,13 @@ class Contrasitive(nn.Module):
 
 # criterion = Contrasitive(1)
 criterion = nn.BCELoss()
-optimizer = torch.optim.Adam(siamese.parameters(), lr=0.001)
+optimizer = torch.optim.Adam(siamese.parameters(), lr=0.0005)
 
-for epoch in range(10):
+for epoch in range(20):
+
+    running_loss = 0.0
+    num_batch = 0
+
     for img1, img2, label in dataloader:
         optimizer.zero_grad()
         # print(label)
@@ -136,7 +124,10 @@ for epoch in range(10):
         loss = criterion(out, label.unsqueeze(1))
         loss.backward()
         optimizer.step()
-    print(f"Epoch {epoch}, Loss: {loss.item()}")
+
+        running_loss += loss.item()
+        num_batch += 1
+    print(f"Epoch {epoch}, Loss: {running_loss/num_batch}")
 
 siamese.eval()
 
