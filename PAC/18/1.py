@@ -19,8 +19,8 @@ for i in range(1,41):
 
 for idx_first_dir in range(1,41):
     for idx_first_img in range(1,11):
-        for idx_second_dir in range(idx_first_dir+1,41):
-            for idx_second_img in range(1,11):
+        for idx_second_dir in range(idx_first_dir+1,min(idx_first_dir+4,41)):
+            for idx_second_img in range(6,11):
                 data.append((transform(cv2.imread(f"s{idx_first_dir}/{idx_first_img}.pgm", cv2.IMREAD_GRAYSCALE)),
                              transform(cv2.imread(f"s{idx_second_dir}/{idx_second_img}.pgm", cv2.IMREAD_GRAYSCALE)), 0))
 
@@ -91,12 +91,10 @@ class SiameseNet(nn.Module):
     def forward(self,x1,x2):
         emb1 = self.base_model(x1)
         emb2 = self.base_model(x2)
+        # diff = abs(emb1 - emb2)
+        # prob = self.classifier(diff)
 
-        diff = abs(emb1 - emb2)
-
-        prob = self.classifier(diff)
-
-        return prob
+        return emb1, emb2
 
 base_model = model()
 siamese = SiameseNet(base_model)
@@ -126,9 +124,9 @@ for epoch in range(20):
     for img1, img2, label in dataloader:
         optimizer.zero_grad()
         # print(label)
-        # out = siamese(img1, img2)
-        out1 = siamese.base_model(img1)
-        out2 = siamese.base_model(img2)
+        out1,out2 = siamese(img1, img2)
+        # out1 = siamese.base_model(img1)
+        # out2 = siamese.base_model(img2)
         loss = criterion(out1,out2, label)
         loss.backward()
         optimizer.step()
@@ -139,11 +137,11 @@ for epoch in range(20):
 
 siamese.eval()
 
-img_t1 = transform(cv2.imread(r"s1/1.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(1)
-img_t2 = transform(cv2.imread(r"s1/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(1)
-img_t3 = transform(cv2.imread(r"s2/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(1)
+img_t1 = transform(cv2.imread(r"s1/1.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(0)
+img_t2 = transform(cv2.imread(r"s1/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(0)
+img_t3 = transform(cv2.imread(r"s2/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(0)
 # print(img_t1.shape)
 with torch.no_grad():
-    print(F.pairwise_distance(siamese.base_model(img_t1),siamese.base_model(img_t2)).item())
-    print(F.pairwise_distance(siamese.base_model(img_t1),siamese.base_model(img_t1)).item())
-    print(F.pairwise_distance(siamese.base_model(img_t1),siamese.base_model(img_t3)).item())
+    print(F.pairwise_distance(*siamese(img_t1,img_t2)).item())
+    print(F.pairwise_distance(*siamese(img_t1,img_t1)).item())
+    print(F.pairwise_distance(*siamese(img_t1,img_t3)).item())
