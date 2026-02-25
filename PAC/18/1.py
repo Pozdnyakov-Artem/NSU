@@ -5,6 +5,8 @@ from torch.utils.data import Dataset
 import torch.nn.functional as F
 from torchvision.transforms import transforms
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 transform = transforms.Compose([
     transforms.ToTensor(),
 ])
@@ -97,7 +99,7 @@ class SiameseNet(nn.Module):
 
 base_model = model()
 siamese = SiameseNet(base_model)
-
+siamese.to(device)
 class Contrasitive(nn.Module):
     def __init__(self,margin):
         super().__init__()
@@ -118,6 +120,7 @@ for epoch in range(10):
     num_batch = 0
 
     for img1, img2, label in dataloader:
+        img1, img2, label = img1.to(device), img2.to(device), label.to(device)
         optimizer.zero_grad()
         out1,out2 = siamese(img1, img2)
         loss = criterion(out1,out2, label)
@@ -130,9 +133,9 @@ for epoch in range(10):
 
 siamese.eval()
 
-img_t1 = transform(cv2.imread(r"s1/1.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(0)
-img_t2 = transform(cv2.imread(r"s1/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(0)
-img_t3 = transform(cv2.imread(r"s2/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(0)
+img_t1 = transform(cv2.imread(r"s1/1.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(0).to(device)
+img_t2 = transform(cv2.imread(r"s1/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(0).to(device)
+img_t3 = transform(cv2.imread(r"s2/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(0).to(device)
 with torch.no_grad():
     print(F.pairwise_distance(*siamese(img_t1,img_t2)).item())
     print(F.pairwise_distance(*siamese(img_t1,img_t1)).item())
