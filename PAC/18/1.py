@@ -14,9 +14,15 @@ data = []
 for i in range(1,41):
     for idx_first_img in range(1,10):
         for idx_second_img in range(i+1,11):
-            data.append((transform(cv2.imread(f"s{i}/{idx_first_img}.pgm",cv2.IMREAD_GRAYSCALE)),transform(cv2.imread(f"s{i}/{idx_second_img}.pgm",cv2.IMREAD_GRAYSCALE)),1))
-            data.append((transform(cv2.imread(f"s{i}/{idx_first_img}.pgm",cv2.IMREAD_GRAYSCALE)), transform(cv2.imread(f"s{idx_second_img}/{idx_first_img}.pgm",cv2.IMREAD_GRAYSCALE)), 0))
+            data.append((transform(cv2.imread(f"s{i}/{idx_first_img}.pgm",cv2.IMREAD_GRAYSCALE)),
+                         transform(cv2.imread(f"s{i}/{idx_second_img}.pgm",cv2.IMREAD_GRAYSCALE)),1))
 
+for idx_first_dir in range(1,41):
+    for idx_first_img in range(1,11):
+        for idx_second_dir in range(idx_first_dir+1,41):
+            for idx_second_img in range(1,11):
+                data.append((transform(cv2.imread(f"s{idx_first_dir}/{idx_first_img}.pgm", cv2.IMREAD_GRAYSCALE)),
+                             transform(cv2.imread(f"s{idx_second_dir}/{idx_second_img}.pgm", cv2.IMREAD_GRAYSCALE)), 0))
 
 # print(len(data))
 
@@ -77,10 +83,10 @@ class SiameseNet(nn.Module):
     def __init__(self,base_model):
         super().__init__()
         self.base_model = base_model
-        self.classifier = nn.Sequential(
-            nn.Linear(128, 1),
-            nn.Sigmoid()
-        )
+        # self.classifier = nn.Sequential(
+        #     nn.Linear(128, 1),
+        #     nn.Sigmoid()
+        # )
 
     def forward(self,x1,x2):
         emb1 = self.base_model(x1)
@@ -102,7 +108,7 @@ class Contrasitive(nn.Module):
 
     def forward(self,x1,x2,label):
         distance = F.pairwise_distance(x1,x2)
-        loss = (1-label)*torch.pow(distance,2)+ label*torch.pow(torch.clamp(self.margin-distance,min=0),2)
+        loss = label*torch.pow(distance,2)+ (1-label)*torch.pow(torch.clamp(self.margin-distance,min=0),2)
 
         # loss_correct = label * torch.pow(distance, 2) + \
         #                (1 - label) * torch.pow(torch.clamp(self.margin - distance, min=0), 2)
@@ -123,7 +129,7 @@ for epoch in range(20):
         # out = siamese(img1, img2)
         out1 = siamese.base_model(img1)
         out2 = siamese.base_model(img2)
-        loss = criterion(out1,out2, label.unsqueeze(1))
+        loss = criterion(out1,out2, label)
         loss.backward()
         optimizer.step()
 
@@ -138,6 +144,6 @@ img_t2 = transform(cv2.imread(r"s1/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(1)
 img_t3 = transform(cv2.imread(r"s2/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(1)
 # print(img_t1.shape)
 with torch.no_grad():
-    print(siamese(img_t1,img_t2))
-    print(siamese(img_t1, img_t1))
-    print(siamese(img_t1, img_t3))
+    print(F.pairwise_distance(siamese.base_model(img_t1),siamese.base_model(img_t2)).item())
+    print(F.pairwise_distance(siamese.base_model(img_t1),siamese.base_model(img_t1)).item())
+    print(F.pairwise_distance(siamese.base_model(img_t1),siamese.base_model(img_t3)).item())
