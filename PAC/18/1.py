@@ -10,7 +10,7 @@ transform = transforms.Compose([
 ])
 
 data = []
-# print(transform(cv2.imread("s1/1.pgm", cv2.IMREAD_GRAYSCALE)).shape)
+
 for i in range(1,41):
     for idx_first_img in range(1,10):
         for idx_second_img in range(idx_first_img+1,11):
@@ -29,7 +29,6 @@ print(len(data))
 class FaceDataset(Dataset):
     def __init__(self, img_data, transform=None):
         super().__init__()
-        # self.crops = self.get_crops(img_data)
         self.crops = img_data
         self.transform = transform
 
@@ -42,7 +41,7 @@ class FaceDataset(Dataset):
         return len(self.crops)
 
 dataset = FaceDataset(data)
-dataloader = torch.utils.data.DataLoader(dataset, batch_size=16, shuffle=True)
+dataloader = torch.utils.data.DataLoader(dataset, batch_size=64, shuffle=True, num_workers=4)
 
 class model(nn.Module):
     def __init__(self):
@@ -107,26 +106,20 @@ class Contrasitive(nn.Module):
     def forward(self,x1,x2,label):
         distance = F.pairwise_distance(x1,x2)
         loss = label*torch.pow(distance,2)+ (1-label)*torch.pow(torch.clamp(self.margin-distance,min=0),2)
-
-        # loss_correct = label * torch.pow(distance, 2) + \
-        #                (1 - label) * torch.pow(torch.clamp(self.margin - distance, min=0), 2)
         return loss.mean()
 
 criterion = Contrasitive(1)
 # criterion = nn.BCELoss()
 optimizer = torch.optim.Adam(siamese.parameters(), lr=0.0005)
 
-for epoch in range(20):
+for epoch in range(10):
 
     running_loss = 0.0
     num_batch = 0
 
     for img1, img2, label in dataloader:
         optimizer.zero_grad()
-        # print(label)
         out1,out2 = siamese(img1, img2)
-        # out1 = siamese.base_model(img1)
-        # out2 = siamese.base_model(img2)
         loss = criterion(out1,out2, label)
         loss.backward()
         optimizer.step()
@@ -140,7 +133,6 @@ siamese.eval()
 img_t1 = transform(cv2.imread(r"s1/1.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(0)
 img_t2 = transform(cv2.imread(r"s1/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(0)
 img_t3 = transform(cv2.imread(r"s2/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(0)
-# print(img_t1.shape)
 with torch.no_grad():
     print(F.pairwise_distance(*siamese(img_t1,img_t2)).item())
     print(F.pairwise_distance(*siamese(img_t1,img_t1)).item())
