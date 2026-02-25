@@ -13,7 +13,7 @@ data = []
 # print(transform(cv2.imread("s1/1.pgm", cv2.IMREAD_GRAYSCALE)).shape)
 for i in range(1,41):
     for idx_first_img in range(1,10):
-        for idx_second_img in range(i+1,11):
+        for idx_second_img in range(idx_first_img+1,11):
             data.append((transform(cv2.imread(f"s{i}/{idx_first_img}.pgm",cv2.IMREAD_GRAYSCALE)),
                          transform(cv2.imread(f"s{i}/{idx_second_img}.pgm",cv2.IMREAD_GRAYSCALE)),1))
 
@@ -24,7 +24,7 @@ for idx_first_dir in range(1,41):
                 data.append((transform(cv2.imread(f"s{idx_first_dir}/{idx_first_img}.pgm", cv2.IMREAD_GRAYSCALE)),
                              transform(cv2.imread(f"s{idx_second_dir}/{idx_second_img}.pgm", cv2.IMREAD_GRAYSCALE)), 0))
 
-# print(len(data))
+print(len(data))
 
 class FaceDataset(Dataset):
     def __init__(self, img_data, transform=None):
