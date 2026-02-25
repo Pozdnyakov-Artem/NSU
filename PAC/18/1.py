@@ -128,7 +128,7 @@ class Contrasitive(nn.Module):
 criterion = nn.BCELoss()
 optimizer = torch.optim.Adam(siamese.parameters(), lr=0.001)
 
-for epoch in range(5):
+for epoch in range(10):
     for img1, img2, label in dataloader:
         optimizer.zero_grad()
         # print(label)
@@ -142,6 +142,9 @@ siamese.eval()
 
 img_t1 = transform(cv2.imread(r"s1/1.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(1)
 img_t2 = transform(cv2.imread(r"s1/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(1)
+img_t3 = transform(cv2.imread(r"s2/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(1)
 # print(img_t1.shape)
 with torch.no_grad():
     print(siamese(img_t1,img_t2))
+    print(siamese(img_t1, img_t1))
+    print(siamese(img_t1, img_t3))
