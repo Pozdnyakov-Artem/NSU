@@ -137,6 +137,6 @@ img_t1 = transform(cv2.imread(r"s1/1.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(0).to
 img_t2 = transform(cv2.imread(r"s1/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(0).to(device)
 img_t3 = transform(cv2.imread(r"s2/2.pgm",cv2.IMREAD_GRAYSCALE)).unsqueeze(0).to(device)
 with torch.no_grad():
-    print(1 - F.pairwise_distance(*siamese(img_t1,img_t2)).item())
-    print(1 - F.pairwise_distance(*siamese(img_t1,img_t1)).item())
-    print(1 - F.pairwise_distance(*siamese(img_t1,img_t3)).item())
+    print(1 - min(1,F.pairwise_distance(*siamese(img_t1,img_t2)).item()))
+    print(1 - min(1,F.pairwise_distance(*siamese(img_t1,img_t1)).item()))
+    print(1 - min(1,F.pairwise_distance(*siamese(img_t1,img_t3)).item()))
