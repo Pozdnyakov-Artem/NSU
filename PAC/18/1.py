@@ -117,22 +117,22 @@ criterion = Contrasitive(1)
 # criterion = nn.BCELoss()
 optimizer = torch.optim.Adam(siamese.parameters(), lr=0.0005)
 
-# for epoch in range(10):
-#
-#     running_loss = 0.0
-#     num_batch = 0
-#
-#     for img1, img2, label in dataloader:
-#         img1, img2, label = img1.to(device), img2.to(device), label.to(device)
-#         optimizer.zero_grad()
-#         out1,out2 = siamese(img1, img2)
-#         loss = criterion(out1,out2, label)
-#         loss.backward()
-#         optimizer.step()
-#
-#         running_loss += loss.item()
-#         num_batch += 1
-#     print(f"Epoch {epoch}, Loss: {running_loss/num_batch}")
+for epoch in range(10):
+
+    running_loss = 0.0
+    num_batch = 0
+
+    for img1, img2, label in dataloader:
+        img1, img2, label = img1.to(device), img2.to(device), label.to(device)
+        optimizer.zero_grad()
+        out1,out2 = siamese(img1, img2)
+        loss = criterion(out1,out2, label)
+        loss.backward()
+        optimizer.step()
+
+        running_loss += loss.item()
+        num_batch += 1
+    print(f"Epoch {epoch}, Loss: {running_loss/num_batch}")
 
 siamese.eval()
 
