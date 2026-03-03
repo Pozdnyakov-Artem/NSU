@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import torch
 import torchvision
+from PIL import Image
 from matplotlib import pyplot as plt
 from sklearn.manifold import TSNE
 from sklearn.model_selection import train_test_split
@@ -93,6 +94,7 @@ def main():
     model.train()
 
     for epoch in range(10):
+        num_batch = 0
         train_loss = 0
         for x_train, y_train in train_loader:
             x_train, y_train = x_train.to(device), y_train.to(device)
@@ -104,7 +106,8 @@ def main():
             loss.backward()
             optimizer.step()
             train_loss += loss.item()
-        print(train_loss)
+            num_batch += 1
+        print(train_loss/num_batch)
 
     model.eval()
     archead.eval()
@@ -114,8 +117,11 @@ def main():
 
     def test(img1, img2, i):
         with torch.no_grad():
-            img_t1 = transform(cv2.imread(img1)).unsqueeze(0).to(device)
-            img_t2 = transform(cv2.imread(img2)).unsqueeze(0).to(device)
+            img_t1 = Image.open(img1).convert('RGB')
+            img_t2 = Image.open(img2).convert('RGB')
+
+            img_t1 = transform(img_t1).unsqueeze(0).to(device)
+            img_t2 = transform(img_t2).unsqueeze(0).to(device)
 
             show_img1 = cv2.imread(img1)
             show_img2 = cv2.imread(img2)
