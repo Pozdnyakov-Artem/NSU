@@ -93,7 +93,7 @@ def main():
 
     model.train()
 
-    for epoch in range(10):
+    for epoch in range(20):
         num_batch = 0
         train_loss = 0
         for x_train, y_train in train_loader:
