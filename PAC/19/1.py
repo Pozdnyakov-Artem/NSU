@@ -46,7 +46,6 @@ def main():
             return F.normalize(x, p=2, dim=1)
 
     model = torchvision.models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
-    model = model.to(device)
 
     # model.fc = torch.nn.Linear(model.fc.in_features, 10)
     new_fc = nn.Sequential(
@@ -86,6 +85,8 @@ def main():
                 return cosine * self.s
 
     archead = ArcFaceHead(512,10).to(device)
+    model = model.to(device)
+
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(list(model.parameters()) + list(archead.parameters()), lr=0.001)
 
