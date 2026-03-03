@@ -63,10 +63,10 @@ def main():
             self.m = m
             self.weight = nn.Parameter(torch.FloatTensor(out_features, in_features))
             nn.init.xavier_uniform_(self.weight)
-            self.cos_m = np.cos(m)
-            self.sin_m = np.sin(m)
-            self.th = np.cos(np.pi - m)
-            self.mm = np.sin(np.pi - m) * m
+            self.register_buffer('cos_m', torch.tensor(np.cos(m), dtype=torch.float32))
+            self.register_buffer('sin_m', torch.tensor(np.sin(m), dtype=torch.float32))
+            self.register_buffer('th', torch.tensor(np.cos(np.pi - m), dtype=torch.float32))
+            self.register_buffer('mm', torch.tensor(np.sin(np.pi - m) * m, dtype=torch.float32))
 
         def forward(self, x, label=None):
             # Нормализация векторов и весов
