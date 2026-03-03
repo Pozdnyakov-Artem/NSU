@@ -142,7 +142,7 @@ def main():
             plt.savefig(f"result{i}.png", dpi=300, bbox_inches='tight')
 
 
-    test(f"2750/AnnualCrop/AnnualCrop_1.jpg", f"2750/Annual_Crop/AnnualCrop_2.jpg", 0)
+    test(f"2750/AnnualCrop/AnnualCrop_1.jpg", f"2750/AnnualCrop/AnnualCrop_2.jpg", 0)
     test(f"2750/AnnualCrop/AnnualCrop_1.jpg", f"2750/Forest/Forest_1.jpg",1)
     test(f"2750/AnnualCrop/AnnualCrop_1.jpg",f"2750/AnnualCrop/AnnualCrop_1.jpg",2)
 
