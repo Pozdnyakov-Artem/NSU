@@ -93,21 +93,21 @@ def main():
 
     model.train()
 
-    # for epoch in range(20):
-    #     num_batch = 0
-    #     train_loss = 0
-    #     for x_train, y_train in train_loader:
-    #         x_train, y_train = x_train.to(device), y_train.to(device)
-    #         optimizer.zero_grad()
-    #         output = model(x_train)
-    #         output = archead(output, y_train)
-    #
-    #         loss = criterion(output,y_train)
-    #         loss.backward()
-    #         optimizer.step()
-    #         train_loss += loss.item()
-    #         num_batch += 1
-    #     print(train_loss/num_batch)
+    for epoch in range(20):
+        num_batch = 0
+        train_loss = 0
+        for x_train, y_train in train_loader:
+            x_train, y_train = x_train.to(device), y_train.to(device)
+            optimizer.zero_grad()
+            output = model(x_train)
+            output = archead(output, y_train)
+
+            loss = criterion(output,y_train)
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item()
+            num_batch += 1
+        print(train_loss/num_batch)
 
     model.eval()
     archead.eval()
