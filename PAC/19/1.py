@@ -126,7 +126,7 @@ def main():
             show_img1 = cv2.imread(img1)
             show_img2 = cv2.imread(img2)
 
-            value = F.pairwise_distance(torch.tensor(model(img_t1)), torch.tensor(model(img_t2)))
+            value = F.pairwise_distance(torch.tensor(model(img_t1)), torch.tensor(model(img_t2))).item()
 
             fig, axes = plt.subplots(1, 2, figsize=(8, 4))
             fig.suptitle(f"{value:.4f}", fontsize=14, fontweight='bold')
