@@ -93,21 +93,21 @@ def main():
 
     model.train()
 
-    for epoch in range(20):
-        num_batch = 0
-        train_loss = 0
-        for x_train, y_train in train_loader:
-            x_train, y_train = x_train.to(device), y_train.to(device)
-            optimizer.zero_grad()
-            output = model(x_train)
-            output = archead(output, y_train)
-
-            loss = criterion(output,y_train)
-            loss.backward()
-            optimizer.step()
-            train_loss += loss.item()
-            num_batch += 1
-        print(train_loss/num_batch)
+    # for epoch in range(20):
+    #     num_batch = 0
+    #     train_loss = 0
+    #     for x_train, y_train in train_loader:
+    #         x_train, y_train = x_train.to(device), y_train.to(device)
+    #         optimizer.zero_grad()
+    #         output = model(x_train)
+    #         output = archead(output, y_train)
+    #
+    #         loss = criterion(output,y_train)
+    #         loss.backward()
+    #         optimizer.step()
+    #         train_loss += loss.item()
+    #         num_batch += 1
+    #     print(train_loss/num_batch)
 
     model.eval()
     archead.eval()
@@ -126,7 +126,7 @@ def main():
             show_img1 = cv2.imread(img1)
             show_img2 = cv2.imread(img2)
 
-            value = F.pairwise_distance(torch.tensor(model(img_t1)), torch.tensor(model(img_t2))).item()
+            value = F.pairwise_distance(model(img_t1), model(img_t2)).item()
 
             fig, axes = plt.subplots(1, 2, figsize=(8, 4))
             fig.suptitle(f"{value:.4f}", fontsize=14, fontweight='bold')
@@ -149,7 +149,7 @@ def main():
     with torch.no_grad():
         for x_test, y_test in test_loader:
             x_test, y_test = x_test.to(device), y_test.to(device)
-            output = model(x_test).cpu().numpy()
+            output = model(x_test)
             embeddings = F.normalize(output, p=2, dim=1).cpu().numpy()
 
             data.append(embeddings)
