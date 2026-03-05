@@ -69,21 +69,47 @@ def main():
             self.register_buffer('mm', torch.tensor(np.sin(np.pi - m) * m, dtype=torch.float32))
 
         def forward(self, x, label=None):
-            # Нормализация векторов и весов
+            # 1. Нормализация обязательна для корректной работы arccos
+            # (в исходном коде эта строка была закомментирована, но для геометрического угла она нужна)
             x = F.normalize(x, p=2, dim=1)
+
             w = F.normalize(self.weight, p=2, dim=1)
+
+            # 2. Вычисляем косинус угла (cos(theta))
             cosine = F.linear(x, w)
 
-            if self.training:
-                sine = torch.sqrt(1.0 - torch.pow(cosine, 2))
-                phi = cosine * self.cos_m - sine * self.sin_m
-                phi = torch.where(cosine > self.th, phi, cosine - self.mm)
+            # 3. Ограничиваем диапазон [-1, 1] для численной стабильности arccos
+            # (из-за ошибок float значение может быть чуть больше 1.0, что даст NaN)
+            cosine_clamped = torch.clamp(cosine, -1.0 + 1e-7, 1.0 - 1e-7)
 
-                one_hot = F.one_hot(label, num_classes=self.weight.shape[0]).float()
-                output = (one_hot * phi) + ((1.0 - one_hot) * cosine)
-                return output * self.s
-            else:
-                return cosine * self.s
+            # 4. Вычисляем угол theta = arccos(cos(theta))
+            theta = torch.acos(cosine_clamped)
+
+            # 5. Добавляем маржин m к углу
+            theta_plus_m = theta + self.m
+
+            # 6. Возвращаем косинус нового угла cos(theta + m)
+            phi = torch.cos(theta_plus_m)
+
+            # 7. Применяем маржин только к правильному классу
+            one_hot = F.one_hot(label, num_classes=self.weight.shape[0]).float()
+            output = (one_hot * phi) + ((1.0 - one_hot) * cosine)
+
+            return output * self.s
+
+        # def forward(self, x, label=None):
+        #     # x = F.normalize(x, p=2, dim=1)
+        #     w = F.normalize(self.weight, p=2, dim=1)
+        #     cosine = F.linear(x, w)
+        #
+        #     sine = torch.sqrt(1.0 - torch.pow(cosine, 2))
+        #     phi = cosine * self.cos_m - sine * self.sin_m
+        #     phi = torch.where(cosine > self.th, phi, cosine - self.mm)
+        #
+        #     one_hot = F.one_hot(label, num_classes=self.weight.shape[0]).float()
+        #     output = (one_hot * phi) + ((1.0 - one_hot) * cosine)
+        #     return output * self.s
+
 
     archead = ArcFaceHead(512,10).to(device)
     model = model.to(device)
