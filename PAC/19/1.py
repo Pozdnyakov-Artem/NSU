@@ -14,7 +14,7 @@ from torch.utils.data import Subset
 from torchvision import transforms, models
 
 def main():
-
+# try
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     transform = transforms.Compose([
