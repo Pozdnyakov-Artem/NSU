@@ -143,7 +143,7 @@ def val(vers, index):
     if vers == 'conv':
         model = ConvAutoEncoder([28,28],28*28,28).to(device)
     else:
-        model = AutoEncoder([28,28],28*28,28).to(device)
+        model = AutoEncoder([1,28,28],28*28,28).to(device)
 
     model.load_state_dict(torch.load(f"model{index}.pth", map_location=device))
     with torch.no_grad():
@@ -157,7 +157,7 @@ def val(vers, index):
             vsego+=images.size(0)
 
         print(f"точность {ans/vsego}")
-model = AutoEncoder([28,28],28*28,28).to(device)
+model = AutoEncoder([1,28,28],28*28,28).to(device)
 fc_loss = train(model, trainloader,1)
 model = ConvAutoEncoder([28,28],28*28,28).to(device)
 conv_loss = train(model, trainloader,2)
@@ -199,5 +199,5 @@ def plot_decoder_grid(model, index, latent_dim=2, range_val=3, n_samples=15):
         # plt.show()
     plt.savefig(f'decoder{index}.png')
 
-plot_decoder_grid(AutoEncoder([28,28],28*28,28),1)
+plot_decoder_grid(AutoEncoder([1,28,28],28*28,28),1)
 plot_decoder_grid(ConvAutoEncoder([28,28],28*28,28),2)
