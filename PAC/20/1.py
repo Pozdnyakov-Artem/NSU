@@ -131,11 +131,17 @@ def train(model, trainloader, index):
     torch.save(model.state_dict(), f"model{index}.pth")
     return arr_loss
 
-def count_matches(start, end):
-    diff = torch.abs(end - start)
-    max_error_per_image = diff.flatten(start_dim=1).max(dim=1).values
-    matches = (max_error_per_image <= 0.01)
 
+def count_matches(start, end, threshold=0.05):
+    """
+    Считает изображения, где СРЕДНЯЯ ошибка (MSE) ниже порога.
+    threshold=0.05 означает допустимое отклонение ~5% яркости.
+    """
+    # Вычисляем квадрат ошибки и усредняем по каналам, высоте и ширине
+    mse_per_image = torch.mean((start - end) ** 2, dim=(1, 2, 3))
+
+    # Сравниваем с порогом
+    matches = (mse_per_image <= threshold)
     return matches.sum().item()
 
 def val(vers, index):
@@ -166,8 +172,8 @@ val('lin',1)
 val('conv',2)
 
 plt.figure(figsize=(10,10))
-plt.plot(list(range(1,20)),fc_loss,label='fc_loss',color='red')
-plt.plot(list(range(1,20)),conv_loss,label='conv_loss',color='blue')
+plt.plot(list(range(1,21)),fc_loss,label='fc_loss',color='red')
+plt.plot(list(range(1,21)),conv_loss,label='conv_loss',color='blue')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.savefig('graph.png')
