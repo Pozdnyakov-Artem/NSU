@@ -68,7 +68,7 @@ class ConvAutoEncoder(nn.Module):
         )
 
         self.decoder=nn.Sequential(
-            nn.ConvTranspose2d(32,16,kernel_size=3, stride=2),
+            nn.ConvTranspose2d(32,16,kernel_size=2, stride=2),
             nn.ReLU(),
             nn.ConvTranspose2d(16,1,kernel_size=2, stride=2),
             nn.Sigmoid()
